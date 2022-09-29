@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 
+//recebe o recurso exportado (router)
 const produtoRota = require('./rotas/produto_rotas')
 
 app.use(express.json())

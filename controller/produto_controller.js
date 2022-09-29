@@ -1,4 +1,4 @@
-    const produtoPersistencia = require('../persistencia/produto_persistencia')
+const produtoPersistencia = require('../persistencia/produto_persistencia');
 
 const listaProdutos = [
     {
@@ -19,74 +19,69 @@ function geraId() {
     return idGerador++
 }
 
+// Para exportar a função diretamente se usa o exports. ao invés de const
 
 exports.listar = (req, res) => {
-    produtoPersistencia.listar( (err, listaProdutosBD) => {
-        if(err) {
-            res.status(500).json({erro:err});
+    produtoPersistencia.listar( (err, listaProdutos) => {
+        if(err){
+            return res.status(500).json({erro:err});
         }
         else {
-            res.json(listaProdutosBD)
+            return res.json(listaProdutos);
         }
     });
 }
 
 exports.buscarPorId = (req, res) => {
     const id = req.params.id;
-
-    for (const produto of listaProdutos) {
-        if(produto.id == id){
+    produtoPersistencia.buscarPorId(id, (err, produto) => {
+        if(err) {
+            return res.status(404).json({erro:"Produto nao encontrado"})
+        }
+        else {
             return res.json(produto);
         }
-    }
-    res.status(404).json({"msg":"Produto nao encontrado"})
+    })    
 }
 
-exports.inserir = (req,res) => {
-    
-    let produto = req.body
-    
-    produto.id = geraId()    
-    listaProdutos.push(produto)
-    
-    res.status(201).json(produto)
-
+exports.inserir = (req,res) => {    
+    const produto = req.body
+    produtoPersistencia.inserir(produto, (err, produtoInserido) => {
+        if(err) {
+            return res.status(500).json({erro:err});
+        }
+        else {
+            return res.status(201).json(produtoInserido);
+        }
+    });
 }
-
 
 exports.atualizar = (req, res) => {
     const id = req.params.id;
-    const produtoAtualizado = req.body;
+    const produto = req.body;
 
-    let produto = listaProdutos.find( 
-        function (produto) {
-            return (produto.id == id);
-        } 
-    );
-    if(produto) {
-        if(produtoAtualizado.nome) 
-            produto.nome = produtoAtualizado.nome;
-        if(produtoAtualizado.preco) 
-            produto.preco = produtoAtualizado.preco;
-        res.json(produto);
-    }
-    else {
-        res.status(404).json({msg:"Produto nao encontrado"});
-    }
-
+    produtoPersistencia.atualizar(id, produto, (err, produtoAtualizado) => {
+        if(err) {
+            return res.status(404).json({erro:"Produto nao encontrado"})
+        }
+        else {
+            return res.status(201).json(produtoAtualizado);
+        }
+    });  
 }
 
 exports.deletar = (req, res) => {
     const id = req.params.id;
 
-    const indRemover = listaProdutos.findIndex(
-        (produto) => produto.id == id
-    )
-    
-    if(indRemover >= 0) {
-        res.json(listaProdutos.splice(indRemover, 1));
-    }
-    else {
-        res.status(404).json({msg:"Produto nao encontrado"});
-    }
+    produtoPersistencia.deletar(id, (err, produtoDeletado) => {
+        if(err) {
+            return res.status(404).json({erro:"Produto nao encontrado"})
+        }
+        else {
+            return res.status(200).json(produtoDeletado);
+        }
+    })
 }
+
+// exportando todas as funções
+//module.exports = { listar, ... }
